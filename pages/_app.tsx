@@ -1,4 +1,6 @@
 import '../styles/globals.css';
+import '../styles/styles.css';
+import 'animate.css';
 import type { AppProps } from 'next/app';
 import React, { useEffect } from 'react';
 
@@ -7,20 +9,21 @@ import CssBaseline from '@material-ui/core/CssBaseline';
 import { StylesProvider } from '@material-ui/styles';
 import 'tailwindcss/tailwind.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
+import { SideProvider } from '../src/context/context';
 function MyApp({ Component, pageProps }: AppProps) {
-  useEffect(() => {
-    // Remove the server-side injected CSS.
-    const jssStyles = document.querySelector('#jss-server-side');
-    if (jssStyles) {
-      jssStyles.parentElement !== null
-        ? jssStyles.parentElement.removeChild(jssStyles)
-        : '';
-    }
-  }, []);
+  // useEffect(() => {
+  //   // Remove the server-side injected CSS.
+  //   const jssStyles = document.querySelector('#jss-server-side');
+  //   if (jssStyles) {
+  //     jssStyles.parentElement !== null
+  //       ? jssStyles.parentElement.removeChild(jssStyles)
+  //       : '';
+  //   }
+  // }, []);
 
   return (
-    <StylesProvider injectFirst>
+    <SideProvider>
+      {/* <StylesProvider injectFirst> */}
       <Head>
         <title>My page</title>
         <meta
@@ -29,9 +32,10 @@ function MyApp({ Component, pageProps }: AppProps) {
         />
       </Head>
       {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
-      <CssBaseline />
+      {/* <CssBaseline /> */}
       <Component {...pageProps} />
-    </StylesProvider>
+      {/* </StylesProvider> */}
+    </SideProvider>
   );
 }
 export default MyApp;

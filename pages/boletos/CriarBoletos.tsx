@@ -1,21 +1,23 @@
-import Layout from '../../src/components/Layout';
+import LayoutDash from '../../src/components/Layout';
 import React from 'react';
 
 // import { Container } from './styles';
 
 export default function CriarBoletos() {
   return (
-    <Layout>
+    <LayoutDash>
       <div className='flex justify-center px-6 my-12'>
         {/* Row */}
         <div className='w-full xl:w-3/4 lg:w-11/12 flex'>
           {/* Col */}
           <div
             className='w-full h-auto bg-gray-400 hidden lg:block lg:w-5/12 bg-cover rounded-l-lg'
-            style={{
-              backgroundImage:
-                'url("https://source.unsplash.com/Mv9hjnEUHR4/600x800")',
-            }}
+            style={
+              {
+                // backgroundImage:
+                //   'url("https://source.unsplash.com/Mv9hjnEUHR4/600x800")',
+              }
+            }
           />
           {/* Col */}
           <div className='w-full lg:w-7/12 bg-white p-5 rounded-lg lg:rounded-l-none'>
@@ -192,6 +194,6 @@ export default function CriarBoletos() {
           </div>
         </div>
       </div> */}
-    </Layout>
+    </LayoutDash>
   );
 }

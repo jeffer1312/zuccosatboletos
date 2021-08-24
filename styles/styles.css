@@ -1,0 +1,92 @@
+html,
+body {
+  padding: 0;
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, Oxygen,
+    Ubuntu, Cantarell, Fira Sans, Droid Sans, Helvetica Neue, sans-serif;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+* {
+  box-sizing: border-box;
+}
+.Header {
+  color: rgba(0, 0, 0, 0.87);
+  transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  background-color: #f5f5f5;
+  top: 0;
+  left: auto;
+  right: 0;
+  position: fixed;
+  width: 97%;
+  display: flex;
+  z-index: 1100;
+  flex-shrink: 0;
+  flex-direction: column;
+  -webkit-transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  -moz-transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  -ms-transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+  -o-transition: box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+}
+
+.menu {
+  position: absolute;
+  left: 5px;
+  margin: auto;
+}
+.menu:hover {
+  color: #979292;
+}
+
+.Sidebar {
+  position: absolute;
+  height: 100%;
+  left: 0;
+  top: 0;
+  background-color: #f5f5f5;
+  width: 3%;
+  border: 1px solid red;
+  /* animation: slideOutLeft;
+  animation-duration: 2s; */
+  z-index: 9999;
+}
+.show {
+  left: 0;
+  /* animation: slideInLeft;
+  animation-duration: 0.6s; */
+  position: absolute;
+  height: 100%;
+
+  top: 0;
+  background-color: #f5f5f5;
+  width: 15%;
+
+  z-index: 9999;
+}
+.Content {
+  width: 97vw;
+
+  grid-area: Content;
+}
+.Footer {
+  grid-area: Footer;
+  border: 1px solid red;
+}
+.ShowSidebar {
+  width: 88vw;
+}
+.App {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 1fr auto 1fr;
+  overflow: hidden;
+  grid-template-areas:
+    'Sidebar Header '
+    'Sidebar Content '
+    'Sidebar Footer ';
+  border: 1px solid rgb(26, 72, 197);
+}
