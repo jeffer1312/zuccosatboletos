@@ -74,7 +74,6 @@ a {
 }
 .Footer {
   grid-area: Footer;
-  border: 1px solid red;
 }
 .ShowSidebar {
   width: 88vw;
@@ -88,5 +87,11 @@ a {
     'Sidebar Header '
     'Sidebar Content '
     'Sidebar Footer ';
-  border: 1px solid rgb(26, 72, 197);
+}
+.btnCriarCliente {
+  color: rgb(0, 68, 255);
+}
+.btnCriarCliente:hover {
+  color: rgb(4, 40, 139);
+  border-bottom: 1px solid black;
 }

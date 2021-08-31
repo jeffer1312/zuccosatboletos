@@ -5,19 +5,8 @@ import moment from 'moment';
 import 'moment/locale/pt-br';
 import Icon from 'awesome-react-icons';
 moment.locale('pt-br');
-type Cliente = {
-  id: number;
-  idusuario: number;
-  nomepessoa: string;
-  cpf_cnpj: string;
-  codigocliente: number;
-  created_at: string;
-  updated_at: string;
-  deleted_at: string;
-  email: string;
-  telefone: string;
-  firstname: string;
-};
+
+import { Cliente } from '../../src/types';
 function ClientesCadastrados() {
   const [clientes, setClientes] = useState<Array<Cliente>>([]);
 

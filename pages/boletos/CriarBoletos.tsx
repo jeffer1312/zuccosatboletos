@@ -1,16 +1,42 @@
 import LayoutDash from '../../src/components/Layout';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import SelectCliente from '../../src/SelectCliente';
+import { useForm, Controller } from 'react-hook-form';
+import { Cliente } from '../../src/types';
 
 // import { Container } from './styles';
 
 export default function CriarBoletos() {
+  const { control, register, setValue, handleSubmit } = useForm();
+  const [clienteSelecionado, setClienteSelecionado] = useState<
+    Array<Cliente>
+  >();
+  const [infoPedido, setInfoPedido] = useState([1]);
+  useEffect(() => {
+    console.log(clienteSelecionado);
+    if (clienteSelecionado) {
+      console.log(clienteSelecionado);
+      setValue('nome', clienteSelecionado[0]?.nomepessoa);
+      setValue('telefone', clienteSelecionado[0]?.telefone);
+      setValue('email', clienteSelecionado[0]?.email);
+      setValue('cnpj', clienteSelecionado[0]?.cpf_cnpj);
+      // setValue('nome', clienteSelecionado[0].nomepessoa);
+    }
+  }, [clienteSelecionado]);
+  function handleCriarBoleto(data) {
+    console.log(data);
+  }
+  function CriarCliente() {
+    setClienteSelecionado([]);
+    setValue('AddBoleto_Cliente', '');
+  }
   return (
     <LayoutDash>
-      <div className='flex justify-center px-6 my-12'>
-        {/* Row */}
-        <div className='w-full xl:w-3/4 lg:w-11/12 flex'>
-          {/* Col */}
-          <div
+      {/* <div className='flex justify-center my-12'> */}
+      {/* Row */}
+      <div className='w-full  flex'>
+        {/* Col */}
+        {/* <div
             className='w-full h-auto bg-gray-400 hidden lg:block lg:w-5/12 bg-cover rounded-l-lg'
             style={
               {
@@ -18,100 +44,164 @@ export default function CriarBoletos() {
                 //   'url("https://source.unsplash.com/Mv9hjnEUHR4/600x800")',
               }
             }
-          />
-          {/* Col */}
-          <div className='w-full lg:w-7/12 bg-white p-5 rounded-lg lg:rounded-l-none'>
-            <h3 className='pt-4 text-2xl text-center'>Gerar Boleto</h3>
-            <form className='px-8 pt-6 pb-8 mb-4 bg-white rounded'>
-              <div className='mb-4 md:flex md:justify-between'>
-                <div className='mb-4 md:mr-2 md:mb-0'>
-                  <label
-                    className='block mb-2 text-sm font-bold text-gray-700'
-                    htmlFor='firstName'
-                  >
-                    Nome
-                  </label>
-                  <input
-                    className='w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
-                    id='firstName'
-                    type='text'
-                    placeholder='First Name'
+          /> */}
+        {/* Col */}
+        <div className='w-full bg-white p-5 rounded-lg lg:rounded-l-none'>
+          <h3 className='pt-4 text-2xl text-center'>Gerar Boleto</h3>
+          <form
+            onSubmit={handleSubmit(handleCriarBoleto)}
+            className='px-8 pt-6 pb-8 mb-4 bg-white rounded'
+          >
+            <div className='mb-4 md:mr-2 md:mb-0'>
+              <Controller
+                name='AddBoleto_Cliente'
+                defaultValue=''
+                control={control}
+                render={({ field: { onChange, value } }) => (
+                  <SelectCliente
+                    setClienteSelecionado={setClienteSelecionado}
+                    value={value}
+                    onChange={onChange}
                   />
-                </div>
-                <div className='md:ml-2'>
-                  <label
-                    className='block mb-2 text-sm font-bold text-gray-700'
-                    htmlFor='lastName'
-                  >
-                    Sobrenome
-                  </label>
-                  <input
-                    className='w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
-                    id='lastName'
-                    type='text'
-                    placeholder='Last Name'
-                  />
-                </div>
-              </div>
-              <div className='mb-4'>
-                <label
-                  className='block mb-2 text-sm font-bold text-gray-700'
-                  htmlFor='email'
-                >
-                  Email
-                </label>
-                <input
-                  className='w-full px-3 py-2 mb-3 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
-                  id='email'
-                  type='email'
-                  placeholder='Email'
-                />
-              </div>
-              <div className='mb-4 md:flex md:justify-between'>
-                <div className='mb-4 md:mr-2 md:mb-0'>
-                  <label
-                    className='block mb-2 text-sm font-bold text-gray-700'
-                    htmlFor='password'
-                  >
-                    campo1
-                  </label>
-                  <input
-                    className='w-full px-3 py-2 mb-3 text-sm leading-tight text-gray-700 border border-red-500 rounded shadow appearance-none focus:outline-none focus:shadow-outline'
-                    id='password'
-                    type='password'
-                    placeholder='******************'
-                  />
-                  <p className='text-xs italic text-red-500'>
-                    {/* Please choose a password. */}
-                  </p>
-                </div>
-                <div className='md:ml-2'>
-                  <label
-                    className='block mb-2 text-sm font-bold text-gray-700'
-                    htmlFor='c_password'
-                  >
-                    campo2
-                  </label>
-                  <input
-                    className='w-full px-3 py-2 mb-3 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
-                    id='c_password'
-                    type='password'
-                    placeholder='******************'
-                  />
-                </div>
-              </div>
-              <div className='mb-6 text-center'>
-                <button
-                  className='w-full px-4 py-2 font-bold text-white bg-blue-500 rounded-full hover:bg-blue-700 focus:outline-none focus:shadow-outline'
-                  type='button'
-                >
-                  Criar Boleto
+                )}
+              />
+              <div className='mb-6'>
+                <button onClick={CriarCliente} className='btnCriarCliente'>
+                  Criar Novo Cliente
                 </button>
               </div>
-            </form>
-          </div>
+            </div>
+            {/* {clienteSelecionado ? '' : } */}
+            <div className='mb-4 md:mr-2 md:mb-0'>
+              <label
+                className='block mb-2 text-sm font-bold text-gray-700'
+                htmlFor='Nome'
+              >
+                Nome
+              </label>
+              <input
+                {...register('nome')}
+                className='w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
+                type='text'
+                placeholder='Nome'
+              />
+            </div>
+            <div className='mb-4 md:mr-2 md:mb-0'>
+              <label
+                className='block mb-2 text-sm font-bold text-gray-700'
+                htmlFor='Nome'
+              >
+                Email
+              </label>
+              <input
+                {...register('email')}
+                className='w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
+                type='email'
+                placeholder='email'
+              />
+            </div>
+            <div className='mb-4 md:mr-2 md:mb-0'>
+              <label
+                className='block mb-2 text-sm font-bold text-gray-700'
+                htmlFor='Nome'
+              >
+                Cpf/Cnpj*
+              </label>
+              <input
+                {...register('cnpj')}
+                className='w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
+                type='email'
+                placeholder='email'
+              />
+            </div>
+            <div className='mb-4 md:mr-2 md:mb-0'>
+              <label
+                className='block mb-2 text-sm font-bold text-gray-700'
+                htmlFor='Nome'
+              >
+                Telefone
+              </label>
+              <input
+                {...register('telefone')}
+                className='w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
+                type='email'
+                placeholder='email'
+              />
+            </div>
+
+            <div className='mb-4'>
+              <label
+                className='block mb-2 text-sm font-bold text-gray-700'
+                htmlFor='email'
+              >
+                Referencia
+              </label>
+              <input
+                {...register('referencia')}
+                className='w-full px-3 py-2 mb-3 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
+                placeholder='Referencia'
+              />
+            </div>
+            <h3 className='pt-4 text-2xl text-center'>Informaçoes do pedido</h3>
+            {infoPedido.map(index => (
+              <div className='md:flex flex-row md:space-x-4 w-full text-xs'>
+                <div className='mb-3 space-y-2 w-full text-xs'>
+                  <label className='font-semibold text-gray-600 py-2'>
+                    Descrição
+                  </label>
+                  <input
+                    placeholder='Descrição'
+                    className='appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded-lg h-10 px-4'
+                    type='text'
+                    name='integration[shop_name]'
+                    id='integration_shop_name'
+                  />
+                </div>
+                <div className='mb-3 space-y-2 w-full text-xs'>
+                  <label className='font-semibold text-gray-600 py-2'>
+                    Quantidade
+                  </label>
+                  <input
+                    placeholder='Quantidade'
+                    className='appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded-lg h-10 px-4'
+                    type='number'
+                    name='integration[shop_name]'
+                    id='integration_shop_name'
+                  />
+                </div>
+                <div className='mb-3 space-y-2 w-full text-xs'>
+                  <label className='font-semibold text-gray-600 py-2'>
+                    Valor unitario
+                  </label>
+                  <input
+                    placeholder='Valor'
+                    className='appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded-lg h-10 px-4'
+                    type='text'
+                  />
+                </div>
+              </div>
+            ))}
+            <button
+              onClick={() => setInfoPedido(value => value.concat([1]))}
+              style={{ margin: '10px' }}
+              className='px-4 py-2 font-bold text-white bg-blue-500  hover:bg-blue-700 focus:outline-none focus:shadow-outline'
+              type='submit'
+            >
+              Adicionar Mais
+            </button>
+
+            <div className='mb-6 text-center'>
+              <button
+                className='w-full px-4 py-2 font-bold text-white bg-blue-500 rounded-full hover:bg-blue-700 focus:outline-none focus:shadow-outline'
+                type='submit'
+              >
+                Criar Boleto
+              </button>
+            </div>
+          </form>
         </div>
       </div>
+      {/* </div> */}
 
       {/* <div className='form'>
         <div className='col-12 col-md-6'>
