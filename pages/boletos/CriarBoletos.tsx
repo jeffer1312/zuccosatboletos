@@ -5,13 +5,32 @@ import { useForm, Controller } from 'react-hook-form';
 import { Cliente } from '../../src/types';
 
 // import { Container } from './styles';
-
+type infoPedido = {
+  descricao: string;
+  quantidade: number;
+  register: string;
+};
+type requestBoleto = {
+  idclienteusuario: number;
+  vencimento: Date;
+  referenciapedido: string;
+  urlnotificacao: String;
+  items: [{ descricao: string; valor: number; qtd: number }];
+  aplicardesconto: boolean;
+  desconto_valorfixo: number;
+  desconto_porcento: number;
+  aplicarmulta: boolean;
+  multa_valor: number;
+  multa_datalimite: number;
+  multa_juros: number;
+};
 export default function CriarBoletos() {
-  const { control, register, setValue, handleSubmit } = useForm();
+  const { control, register, setValue, handleSubmit, getValues } = useForm();
   const [clienteSelecionado, setClienteSelecionado] = useState<
     Array<Cliente>
   >();
   const [infoPedido, setInfoPedido] = useState([1]);
+  const [valorTotal, setValorTotal] = useState(0);
   useEffect(() => {
     console.log(clienteSelecionado);
     if (clienteSelecionado) {
@@ -30,6 +49,15 @@ export default function CriarBoletos() {
     setClienteSelecionado([]);
     setValue('AddBoleto_Cliente', '');
   }
+  useEffect(() => {
+    setValorTotal(0);
+    infoPedido.map((info, index) => {
+      let valor = getValues(`Valor${index}`);
+      if (valor != '') {
+        setValorTotal(value => value + parseInt(valor));
+      }
+    });
+  }, [infoPedido]);
   return (
     <LayoutDash>
       {/* <div className='flex justify-center my-12'> */}
@@ -46,6 +74,7 @@ export default function CriarBoletos() {
             }
           /> */}
         {/* Col */}
+
         <div className='w-full bg-white p-5 rounded-lg lg:rounded-l-none'>
           <h3 className='pt-4 text-2xl text-center'>Gerar Boleto</h3>
           <form
@@ -110,8 +139,8 @@ export default function CriarBoletos() {
               <input
                 {...register('cnpj')}
                 className='w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
-                type='email'
-                placeholder='email'
+                type='text'
+                placeholder='cnpj'
               />
             </div>
             <div className='mb-4 md:mr-2 md:mb-0'>
@@ -124,8 +153,8 @@ export default function CriarBoletos() {
               <input
                 {...register('telefone')}
                 className='w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
-                type='email'
-                placeholder='email'
+                type='text'
+                placeholder='telefone'
               />
             </div>
 
@@ -143,18 +172,20 @@ export default function CriarBoletos() {
               />
             </div>
             <h3 className='pt-4 text-2xl text-center'>Informaçoes do pedido</h3>
-            {infoPedido.map(index => (
-              <div className='md:flex flex-row md:space-x-4 w-full text-xs'>
+            {infoPedido.map((info, index) => (
+              <div
+                key={index}
+                className='md:flex flex-row md:space-x-4 w-full text-xs infoPedido'
+              >
                 <div className='mb-3 space-y-2 w-full text-xs'>
                   <label className='font-semibold text-gray-600 py-2'>
                     Descrição
                   </label>
                   <input
+                    {...register(`Descrição${index}`)}
                     placeholder='Descrição'
                     className='appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded-lg h-10 px-4'
                     type='text'
-                    name='integration[shop_name]'
-                    id='integration_shop_name'
                   />
                 </div>
                 <div className='mb-3 space-y-2 w-full text-xs'>
@@ -162,11 +193,10 @@ export default function CriarBoletos() {
                     Quantidade
                   </label>
                   <input
+                    {...register(`Quantidade${index}`)}
                     placeholder='Quantidade'
                     className='appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded-lg h-10 px-4'
                     type='number'
-                    name='integration[shop_name]'
-                    id='integration_shop_name'
                   />
                 </div>
                 <div className='mb-3 space-y-2 w-full text-xs'>
@@ -174,20 +204,43 @@ export default function CriarBoletos() {
                     Valor unitario
                   </label>
                   <input
+                    {...register(`Valor${index}`)}
                     placeholder='Valor'
                     className='appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded-lg h-10 px-4'
-                    type='text'
+                    type='number'
+                    step='any'
                   />
                 </div>
               </div>
             ))}
+            {valorTotal !== 0 ? (
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <h5>Valor Total</h5>
+                <span style={{ fontWeight: 'bold' }}>R${valorTotal},00</span>
+              </div>
+            ) : (
+              ''
+            )}
             <button
-              onClick={() => setInfoPedido(value => value.concat([1]))}
+              onClick={() =>
+                setInfoPedido(value => value.concat([value.length + 1]))
+              }
               style={{ margin: '10px' }}
               className='px-4 py-2 font-bold text-white bg-blue-500  hover:bg-blue-700 focus:outline-none focus:shadow-outline'
               type='submit'
             >
               Adicionar Mais
+            </button>
+            <button
+              onClick={() =>
+                setInfoPedido(value =>
+                  value.filter(value => value !== infoPedido.length)
+                )
+              }
+              style={{ margin: '10px' }}
+              className='px-4 py-2 font-bold text-white bg-blue-500  hover:bg-blue-700 focus:outline-none focus:shadow-outline'
+            >
+              Remover
             </button>
 
             <div className='mb-6 text-center'>
