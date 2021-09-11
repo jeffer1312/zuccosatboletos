@@ -95,15 +95,23 @@ a {
   color: rgb(4, 40, 139);
   border-bottom: 1px solid black;
 }
+.check-radio input {
+  -webkit-appearance: none;
+  appearance: none;
+  background-color: #eee;
+  border-radius: 10px;
+}
 
+.check-radio input:focus {
+  outline: none;
+  cursor: pointer;
+}
 
- input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-inner-spin-button,
 input[type='number']::-webkit-outer-spin-button {
   -webkit-appearance: none;
- 
 }
- input[type=number] { 
- -moz-appearance: textfield;
- appearance: textfield;
-
+input[type='number'] {
+  -moz-appearance: textfield;
+  appearance: textfield;
 }

@@ -1,8 +1,9 @@
 import LayoutDash from '../../src/components/Layout';
 import React, { useState, useEffect } from 'react';
 import SelectCliente from '../../src/SelectCliente';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm, Controller, ChangeHandler } from 'react-hook-form';
 import { Cliente } from '../../src/types';
+import { api } from '../../src/services/api/api';
 
 // import { Container } from './styles';
 type infoPedido = {
@@ -10,26 +11,38 @@ type infoPedido = {
   quantidade: number;
   register: string;
 };
+type item = {
+  descricao: string;
+  valor: number;
+  qtd: number;
+};
 type requestBoleto = {
   idclienteusuario: number;
   vencimento: Date;
   referenciapedido: string;
-  urlnotificacao: String;
-  items: [{ descricao: string; valor: number; qtd: number }];
+  urlnotificacao?: String;
+  items: Array<item>;
   aplicardesconto: boolean;
-  desconto_valorfixo: number;
-  desconto_porcento: number;
+  desconto_valorfixo?: number;
+  desconto_porcento?: number;
   aplicarmulta: boolean;
-  multa_valor: number;
-  multa_datalimite: number;
-  multa_juros: number;
+  multa_valor?: number;
+  multa_datalimite?: number;
+  multa_juros?: number;
 };
+type items = { descricao: string; valor: number; qtd: number };
 export default function CriarBoletos() {
   const { control, register, setValue, handleSubmit, getValues } = useForm();
+  const [criarCliente, setCriarCliente] = useState(false);
+  const [aplicarMulta, setAplicarMulta] = useState(false);
+  const [items, setItems] = useState<Array<items>>();
+  const [aplicarDesconto, setAplicarDesconto] = useState(false);
+  const [cadastrarEndereco, setCadastrarEndereco] = useState(true);
   const [clienteSelecionado, setClienteSelecionado] = useState<
     Array<Cliente>
   >();
   const [infoPedido, setInfoPedido] = useState([1]);
+  const [valores, setValores] = useState([]);
   const [valorTotal, setValorTotal] = useState(0);
   useEffect(() => {
     console.log(clienteSelecionado);
@@ -42,22 +55,97 @@ export default function CriarBoletos() {
       // setValue('nome', clienteSelecionado[0].nomepessoa);
     }
   }, [clienteSelecionado]);
-  function handleCriarBoleto(data) {
+  async function handleCriarBoleto(data) {
+    const {
+      AddBoleto_Cliente,
+      cnpj,
+      email,
+      nome,
+      referencia,
+      telefone,
+      vencimento,
+      desconto,
+    } = data;
     console.log(data);
+    let dadosBoleto: requestBoleto = {
+      idclienteusuario: AddBoleto_Cliente.value,
+      vencimento: vencimento,
+      referenciapedido: referencia,
+
+      items: items,
+      aplicardesconto: aplicarDesconto,
+      // desconto_valorfixo: ,
+      // desconto_porcento: ,
+      aplicarmulta: aplicarMulta,
+      // multa_valor: '',
+      // multa_datalimite:'' ,
+      // multa_juros: '',
+    };
+    console.log(dadosBoleto);
+    const res = await api.post('/transacao/boleto', dadosBoleto);
+    console.log(res);
   }
   function CriarCliente() {
     setClienteSelecionado([]);
     setValue('AddBoleto_Cliente', '');
+    setCriarCliente(true);
   }
   useEffect(() => {
+    console.log('items', items);
+  }, [infoPedido, items]);
+  useEffect(() => {
     setValorTotal(0);
+    setItems([]);
     infoPedido.map((info, index) => {
       let valor = getValues(`Valor${index}`);
+      let qt = getValues(`Quantidade${index}`);
+      let descricao = getValues(`Descricao${index}`);
+      let itemsLocais = {
+        descricao,
+        qtd: parseInt(qt),
+        valor: parseInt(valor),
+      };
       if (valor != '') {
+        setItems(value => value.concat([itemsLocais]));
         setValorTotal(value => value + parseInt(valor));
       }
     });
   }, [infoPedido]);
+  useEffect(() => {
+    console.log(clienteSelecionado && clienteSelecionado[0]?.id);
+    if (clienteSelecionado && clienteSelecionado[0]?.id !== undefined) {
+      setCriarCliente(false);
+    }
+  }, [clienteSelecionado]);
+  function somarValores() {
+    setValorTotal(0);
+    setItems([]);
+    infoPedido.map((info, index) => {
+      let valor = getValues(`Valor${index}`);
+      let qt = getValues(`Quantidade${index}`);
+      let descricao = getValues(`Descricao${index}`);
+      let itemsLocais = {
+        descricao,
+        qtd: parseInt(qt),
+        valor: parseInt(valor),
+      };
+      if (valor != '') {
+        setItems(value => value.concat([itemsLocais]));
+        setValorTotal(value => value + parseInt(qt) * parseInt(valor));
+      }
+    });
+  }
+
+  useEffect(() => {
+    setValorTotal(0);
+    console.log(valores);
+    valores.map(valor => {
+      setValorTotal(value => value + parseInt(valor));
+    });
+  }, [valores]);
+  function handleOnChangeForm(data) {
+    console.log('change', data.target);
+  }
   return (
     <LayoutDash>
       {/* <div className='flex justify-center my-12'> */}
@@ -78,6 +166,7 @@ export default function CriarBoletos() {
         <div className='w-full bg-white p-5 rounded-lg lg:rounded-l-none'>
           <h3 className='pt-4 text-2xl text-center'>Gerar Boleto</h3>
           <form
+            onChange={handleOnChangeForm}
             onSubmit={handleSubmit(handleCriarBoleto)}
             className='px-8 pt-6 pb-8 mb-4 bg-white rounded'
           >
@@ -108,9 +197,11 @@ export default function CriarBoletos() {
               >
                 Nome
               </label>
+
               <input
                 {...register('nome')}
-                className='w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
+                disabled={!criarCliente}
+                className=' form-control w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
                 type='text'
                 placeholder='Nome'
               />
@@ -124,7 +215,8 @@ export default function CriarBoletos() {
               </label>
               <input
                 {...register('email')}
-                className='w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
+                disabled={!criarCliente}
+                className='form-control w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
                 type='email'
                 placeholder='email'
               />
@@ -138,7 +230,8 @@ export default function CriarBoletos() {
               </label>
               <input
                 {...register('cnpj')}
-                className='w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
+                disabled={!criarCliente}
+                className='form-control w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
                 type='text'
                 placeholder='cnpj'
               />
@@ -152,12 +245,134 @@ export default function CriarBoletos() {
               </label>
               <input
                 {...register('telefone')}
-                className='w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
+                disabled={!criarCliente}
+                className='form-control w-full px-3 py-2 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
                 type='text'
                 placeholder='telefone'
               />
             </div>
+            {criarCliente ? (
+              <>
+                <div
+                  style={{ display: 'flex', justifyContent: 'center' }}
+                  className='form-check'
+                >
+                  <input
+                    onClick={() => setCadastrarEndereco(!cadastrarEndereco)}
+                    className='form-check-input'
+                    type='checkbox'
+                  />
+                  <label className='form-check-label '>
+                    <small>Não cadastrar endereço</small>
+                  </label>
+                  {/* <a className='btn btn-secondary btn-sm'>?</a> */}
+                </div>
 
+                {cadastrarEndereco ? (
+                  <>
+                    <div className='mb-3 row'>
+                      <label htmlFor='nome' className='col-sm-2 col-form-label'>
+                        CEP *:
+                      </label>
+                      <div className='col-sm-10'>
+                        <input
+                          {...register('CEP')}
+                          type='text'
+                          className='form-control cep_cadastrarclienteuser'
+                          required
+                        />
+                        <small className='text-danger' />
+                      </div>
+                    </div>
+
+                    <div className='mb-3 row'>
+                      <label htmlFor='nome' className='col-sm-2 col-form-label'>
+                        Endereço*:
+                      </label>
+                      <div className='col-sm-10'>
+                        <div className='input-group mb-3'>
+                          <input
+                            {...register('endereco')}
+                            type='text'
+                            className='form-control col-lg-8'
+                            id='endereco_cadcliente'
+                            placeholder='Av São Paulo'
+                          />
+                          <input
+                            {...register('nendereco')}
+                            type='text'
+                            className='form-control col-lg-4'
+                            placeholder='Nº'
+                          />
+                        </div>
+                      </div>
+                      <div className='col-sm-12'>
+                        <div className='input-group mb-3'>
+                          <input
+                            {...register('complemento')}
+                            type='text'
+                            className='form-control col-lg-10'
+                            placeholder='Complemento'
+                            id='complemento_cadcliente'
+                          />
+                          <input
+                            {...register('bairro')}
+                            type='text'
+                            className='form-control col-lg-5'
+                            placeholder='Bairro'
+                            id='bairro_cadcliente'
+                          />
+                          <input
+                            {...register('cidade')}
+                            type='text'
+                            className='form-control col-lg-4'
+                            id='cidade_cadcliente'
+                            placeholder='Cidade'
+                          />
+                          <select
+                            {...register('estado')}
+                            className='form-control'
+                            id='estado_cadcliente'
+                          >
+                            <option value='AC'>Acre</option>
+                            <option value='AL'>Alagoas</option>
+                            <option value='AP'>Amapá</option>
+                            <option value='AM'>Amazonas</option>
+                            <option value='BA'>Bahia</option>
+                            <option value='CE'>Ceará</option>
+                            <option value='DF'>Distrito Federal</option>
+                            <option value='ES'>Espírito Santo</option>
+                            <option value='GO'>Goiás</option>
+                            <option value='MA'>Maranhão</option>
+                            <option value='MT'>Mato Grosso</option>
+                            <option value='MS'>Mato Grosso do Sul</option>
+                            <option value='MG'>Minas Gerais</option>
+                            <option value='PA'>Pará</option>
+                            <option value='PB'>Paraíba</option>
+                            <option value='PR'>Paraná</option>
+                            <option value='PE'>Pernambuco</option>
+                            <option value='PI'>Piauí</option>
+                            <option value='RJ'>Rio de Janeiro</option>
+                            <option value='RN'>Rio Grande do Norte</option>
+                            <option value='RS'>Rio Grande do Sul</option>
+                            <option value='RO'>Rondônia</option>
+                            <option value='RR'>Roraima</option>
+                            <option value='SC'>Santa Catarina</option>
+                            <option value='SP'>São Paulo</option>
+                            <option value='SE'>Sergipe</option>
+                            <option value='TO'>Tocantins</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  ''
+                )}
+              </>
+            ) : (
+              ''
+            )}
             <div className='mb-4'>
               <label
                 className='block mb-2 text-sm font-bold text-gray-700'
@@ -165,63 +380,279 @@ export default function CriarBoletos() {
               >
                 Referencia
               </label>
+
               <input
                 {...register('referencia')}
-                className='w-full px-3 py-2 mb-3 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
-                placeholder='Referencia'
+                className='form-control w-full px-3 py-2 mb-3 text-sm leading-tight text-gray-700 border rounded shadow appearance-none focus:outline-none focus:shadow-outline'
+                placeholder='Código que identifica o pedido'
               />
             </div>
             <h3 className='pt-4 text-2xl text-center'>Informaçoes do pedido</h3>
-            {infoPedido.map((info, index) => (
-              <div
-                key={index}
-                className='md:flex flex-row md:space-x-4 w-full text-xs infoPedido'
-              >
-                <div className='mb-3 space-y-2 w-full text-xs'>
-                  <label className='font-semibold text-gray-600 py-2'>
-                    Descrição
+            <table className='table' id='itemstransacao_boleto'>
+              <thead>
+                <tr>
+                  <th scope='col'>Descrição</th>
+                  <th scope='col'>Quantidade</th>
+                  <th scope='col'>Valor Unitário</th>
+                  <th scope='col' />
+                </tr>
+              </thead>
+              <tbody id='text-center'>
+                {infoPedido.map((info, index) => (
+                  <>
+                    <tr key={index} id='tr_default_boleto'>
+                      <td scope='row'>
+                        <input
+                          {...register(`Descricao${index}`)}
+                          placeholder='Descrição'
+                          type='text'
+                          className='form-control descricao_boleto'
+                          required
+                        />
+                      </td>
+                      <td>
+                        <input
+                          {...register(`Quantidade${index}`)}
+                          placeholder='Quantidade'
+                          min={1}
+                          type='number'
+                          onBlur={somarValores}
+                          className='quantidade_boleto form-control text-center recalcularboletoinput'
+                          required
+                          defaultValue={1}
+                        />
+                      </td>
+                      <td>
+                        <input
+                          {...register(`Valor${index}`)}
+                          placeholder='Valor'
+                          type='text'
+                          onBlur={somarValores}
+                          // onChange={e => handleValor(e, index)}
+                          // pattern='[0-9]+([\,][0-9]+)?'
+
+                          className='valorunitario_boleto form-control recalcularboletoinput input_valorunit text-center'
+                          required
+                          maxLength={18}
+                          autoComplete='off'
+                        />
+                      </td>
+                      <td>
+                        <button
+                          type='button'
+                          className='close btn_remove_from_table_boleto'
+                          aria-label='Close'
+                          onClick={() =>
+                            setInfoPedido(value =>
+                              value.filter(value => value !== info)
+                            )
+                          }
+                        >
+                          <span aria-hidden='true'>×</span>
+                        </button>
+                      </td>
+                    </tr>
+                    {/* 
+                    <div
+                      key={index}
+                      className='md:flex flex-row md:space-x-4 w-full text-xs infoPedido'
+                    >
+                      <div className='mb-3 space-y-2 w-full text-xs'>
+                        <label className='font-semibold text-gray-600 py-2'>
+                          Descrição
+                        </label>
+                        <input
+                          {...register(`Descrição${index}`)}
+                          placeholder='Descrição'
+                          className='appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded-lg h-10 px-4'
+                          type='text'
+                        />
+                      </div>
+                      <div className='mb-3 space-y-2 w-full text-xs'>
+                        <label className='font-semibold text-gray-600 py-2'>
+                          Quantidade
+                        </label>
+                        <input
+                          {...register(`Quantidade${index}`)}
+                          placeholder='Quantidade'
+                          className='appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded-lg h-10 px-4'
+                          type='number'
+                        />
+                      </div>
+                      <div className='mb-3 space-y-2 w-full text-xs'>
+                        <label className='font-semibold text-gray-600 py-2'>
+                          Valor unitario
+                        </label>
+                        <input
+                          {...register(`Valor${index}`)}
+                          placeholder='Valor'
+                          className='appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded-lg h-10 px-4'
+                          type='number'
+                          step='any'
+                        />
+                      </div>
+                    </div> */}
+                  </>
+                ))}
+              </tbody>
+            </table>
+            <button
+              onClick={() =>
+                setInfoPedido(value => value.concat([value.length + 1]))
+              }
+              className='btn btn-info btn-sm'
+            >
+              + Adicionar mais
+            </button>
+
+            <div className='form-group row'>
+              <label htmlFor='inputEmail3' className='col-lg-12 col-form-label'>
+                <strong> Vencimento *:</strong>
+              </label>
+              <div className='col-sm-4'>
+                <input
+                  {...register('vencimento')}
+                  type='date'
+                  className='form-control mb-2 col-lg-6 text-center'
+                  required
+                  defaultValue='2021-09-11'
+                />
+              </div>
+            </div>
+
+            <div className='input-group mb-3 input-group-md '>
+              <div className='input-group-prepend'>
+                <div className='input-group-text check-radio'>
+                  <label
+                    htmlFor='aplicarmultaboleto'
+                    className='col-form-label mr-2'
+                  >
+                    <strong> Aplicar Multa</strong>{' '}
                   </label>
                   <input
-                    {...register(`Descrição${index}`)}
-                    placeholder='Descrição'
-                    className='appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded-lg h-10 px-4'
-                    type='text'
-                  />
-                </div>
-                <div className='mb-3 space-y-2 w-full text-xs'>
-                  <label className='font-semibold text-gray-600 py-2'>
-                    Quantidade
-                  </label>
-                  <input
-                    {...register(`Quantidade${index}`)}
-                    placeholder='Quantidade'
-                    className='appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded-lg h-10 px-4'
-                    type='number'
-                  />
-                </div>
-                <div className='mb-3 space-y-2 w-full text-xs'>
-                  <label className='font-semibold text-gray-600 py-2'>
-                    Valor unitario
-                  </label>
-                  <input
-                    {...register(`Valor${index}`)}
-                    placeholder='Valor'
-                    className='appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded-lg h-10 px-4'
-                    type='number'
-                    step='any'
+                    type='checkbox'
+                    onClick={() => setAplicarMulta(!aplicarMulta)}
+                    aria-label='Chebox para permitir input text'
                   />
                 </div>
               </div>
-            ))}
-            {valorTotal !== 0 ? (
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <h5>Valor Total</h5>
-                <span style={{ fontWeight: 'bold' }}>R${valorTotal},00</span>
+            </div>
+            {aplicarMulta ? (
+              <div className='input-group mb-3 input-group-md '>
+                <input
+                  type='text'
+                  name='multa_valor_Boleto'
+                  className='form-control text-center multa_value_boleto'
+                  placeholder='Multa'
+                  max={20}
+                  step='.01'
+                  required
+                />
+                <div className='input-group-append'>
+                  <span className='input-group-text'>%</span>
+                </div>
+                <input
+                  type='text'
+                  name='multa_juros_Boleto'
+                  className='form-control text-center multa_value_boleto'
+                  placeholder='Juros ao mês'
+                  max={20}
+                  step='.01'
+                  required
+                />
+                <div className='input-group-append'>
+                  <span className='input-group-text'>%</span>
+                </div>
+                <input
+                  type='number'
+                  className='form-control text-center'
+                  min={1}
+                  max={60}
+                  pattern='\d*'
+                  step={1}
+                  placeholder='Limite Dias'
+                  required
+                />
+                <div className='input-group-append'>
+                  <span className='input-group-text'>dia</span>
+                </div>
               </div>
             ) : (
               ''
             )}
-            <button
+
+            <div className='input-group mb-3 input-group-md'>
+              <div className='input-group-prepend'>
+                <div className='input-group-text check-radio'>
+                  <label
+                    htmlFor='aplicardescontoboleto'
+                    className='col-form-label mr-2'
+                  >
+                    <strong>Desconto: </strong>{' '}
+                  </label>
+                  <input
+                    type='checkbox'
+                    style={{}}
+                    onClick={() => setAplicarDesconto(!aplicarDesconto)}
+                    aria-label='Chebox para permitir input text'
+                    id='aplicardescontoboleto'
+                  />
+                  <small style={{ marginLeft: '5px' }}>
+                    {' '}
+                    Aplicar desconto se pagar antes do vencimento
+                  </small>
+                </div>
+              </div>
+            </div>
+            {aplicarDesconto ? (
+              <div className='input-group mb-3 input-group-md'>
+                <select className='form-control text-center col-sm-10'>
+                  <option value={1}>Porcentagem</option>
+                  <option value={2}>Valor Fixo</option>
+                </select>
+                <input
+                  {...register('desconto')}
+                  type='text'
+                  name='desconto_valor_boleto'
+                  className='form-control text-center col-sm-10 desconto_valor_boleto'
+                  step='.01'
+                  placeholder='%'
+                  required
+                />
+                <div className='input-group-append'>
+                  <span className='input-group-text' />
+                </div>
+                <input
+                  type='number'
+                  pattern='\d*'
+                  name='desconto_limiteday_boleto'
+                  className='form-control text-center col-sm-10'
+                  step={1}
+                  min={0}
+                  placeholder='Dias antes de vencer'
+                  required
+                />
+                <div className='input-group-append'>
+                  <span className='input-group-text'>dia</span>
+                </div>
+              </div>
+            ) : (
+              ''
+            )}
+
+            <div className='modal-footer justify-content-between'>
+              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                <span>Valor Total :R${valorTotal},00</span>
+              </div>
+
+              <div>
+                <button type='submit' className='btn btn-primary'>
+                  Gerar Boleto
+                </button>
+              </div>
+            </div>
+
+            {/* <button
               onClick={() =>
                 setInfoPedido(value => value.concat([value.length + 1]))
               }
@@ -250,7 +681,7 @@ export default function CriarBoletos() {
               >
                 Criar Boleto
               </button>
-            </div>
+            </div> */}
           </form>
         </div>
       </div>
