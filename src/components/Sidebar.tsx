@@ -233,14 +233,14 @@ export default function Sidebar() {
                 <ListItem button key={text}>
                   <ListItemIcon>
                     {text === 'Criar Boletos' ? (
-                      <Link href=''>
-                        <a href='/boletos/CriarBoletos'>
+                      <Link href='/boletos/CriarBoletos'>
+                        <a>
                           <Icon name='calendar' />
                         </a>
                       </Link>
                     ) : (
-                      <Link href=''>
-                        <a href='/boletos/ClientesCadastrados'>
+                      <Link href='/boletos/ClientesCadastrados'>
+                        <a>
                           <Icon name='coffee' />
                         </a>
                       </Link>
