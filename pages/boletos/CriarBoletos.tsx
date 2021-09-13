@@ -4,6 +4,7 @@ import SelectCliente from '../../src/SelectCliente';
 import { useForm, Controller, ChangeHandler } from 'react-hook-form';
 import { Cliente } from '../../src/types';
 import { api } from '../../src/services/api/api';
+import router from 'next/router';
 
 // import { Container } from './styles';
 type infoPedido = {
@@ -15,6 +16,31 @@ type item = {
   descricao: string;
   valor: number;
   qtd: number;
+};
+
+type respostaCriarBoleto = {
+  success: boolean;
+  transacao: {
+    idtransacao: string;
+    datacriacao: string;
+    valortotal: number;
+    status: number;
+    referenciapedido: string;
+    datavencimento: string;
+    whatsapplink: string;
+    boleto: {
+      nossonumero: number;
+      linhaDigitavel: string;
+      codigoDeBarra: string;
+      url_slip_pdf: string;
+      url_slip: string;
+    };
+    pix: {
+      qrcode: string;
+      vencimento: string;
+      created_at: string;
+    };
+  };
 };
 type requestBoleto = {
   idclienteusuario: number;
@@ -36,6 +62,8 @@ export default function CriarBoletos() {
   const [criarCliente, setCriarCliente] = useState(false);
   const [aplicarMulta, setAplicarMulta] = useState(false);
   const [items, setItems] = useState<Array<items>>();
+  const [porcentagem, setPorcentagem] = useState('');
+  const [botaoPdf, setBotaoPdf] = useState(false);
   const [aplicarDesconto, setAplicarDesconto] = useState(false);
   const [cadastrarEndereco, setCadastrarEndereco] = useState(true);
   const [clienteSelecionado, setClienteSelecionado] = useState<
@@ -64,7 +92,12 @@ export default function CriarBoletos() {
       referencia,
       telefone,
       vencimento,
-      desconto,
+
+      limitedias,
+      valormultajuros,
+      valormulta,
+      descontoValor,
+      descontoDiasAntes,
     } = data;
     console.log(data);
     let dadosBoleto: requestBoleto = {
@@ -74,16 +107,23 @@ export default function CriarBoletos() {
 
       items: items,
       aplicardesconto: aplicarDesconto,
-      // desconto_valorfixo: ,
-      // desconto_porcento: ,
+
+      desconto_valorfixo: porcentagem === '2' ? descontoValor : undefined,
+      desconto_porcento: porcentagem === '1' ? descontoValor : undefined,
       aplicarmulta: aplicarMulta,
-      // multa_valor: '',
-      // multa_datalimite:'' ,
-      // multa_juros: '',
+      multa_valor: valormulta,
+      multa_datalimite: limitedias,
+      multa_juros: valormultajuros,
     };
     console.log(dadosBoleto);
     const res = await api.post('/transacao/boleto', dadosBoleto);
     console.log(res);
+    const resposta: respostaCriarBoleto = res.data;
+    if (resposta.success) {
+      console.log(resposta.transacao.boleto.url_slip_pdf);
+      window.open(resposta.transacao.boleto.url_slip, '_blank');
+    }
+    // console.log(res);
   }
   function CriarCliente() {
     setClienteSelecionado([]);
@@ -91,8 +131,8 @@ export default function CriarBoletos() {
     setCriarCliente(true);
   }
   useEffect(() => {
-    console.log('items', items);
-  }, [infoPedido, items]);
+    console.log('items', porcentagem);
+  }, [infoPedido, porcentagem]);
   useEffect(() => {
     setValorTotal(0);
     setItems([]);
@@ -515,7 +555,7 @@ export default function CriarBoletos() {
                   type='date'
                   className='form-control mb-2 col-lg-6 text-center'
                   required
-                  defaultValue='2021-09-11'
+                  //defaultValue={Date.now()}
                 />
               </div>
             </div>
@@ -540,6 +580,7 @@ export default function CriarBoletos() {
             {aplicarMulta ? (
               <div className='input-group mb-3 input-group-md '>
                 <input
+                  {...register('valormulta')}
                   type='text'
                   name='multa_valor_Boleto'
                   className='form-control text-center multa_value_boleto'
@@ -552,6 +593,7 @@ export default function CriarBoletos() {
                   <span className='input-group-text'>%</span>
                 </div>
                 <input
+                  {...register('valormultajuros')}
                   type='text'
                   name='multa_juros_Boleto'
                   className='form-control text-center multa_value_boleto'
@@ -564,6 +606,7 @@ export default function CriarBoletos() {
                   <span className='input-group-text'>%</span>
                 </div>
                 <input
+                  {...register('limitedias')}
                   type='number'
                   className='form-control text-center'
                   min={1}
@@ -606,12 +649,16 @@ export default function CriarBoletos() {
             </div>
             {aplicarDesconto ? (
               <div className='input-group mb-3 input-group-md'>
-                <select className='form-control text-center col-sm-10'>
+                <select
+                  onChange={e => setPorcentagem(e.target.value)}
+                  className='form-control text-center col-sm-10'
+                >
                   <option value={1}>Porcentagem</option>
                   <option value={2}>Valor Fixo</option>
                 </select>
+
                 <input
-                  {...register('desconto')}
+                  {...register('descontoValor')}
                   type='text'
                   name='desconto_valor_boleto'
                   className='form-control text-center col-sm-10 desconto_valor_boleto'
@@ -623,6 +670,7 @@ export default function CriarBoletos() {
                   <span className='input-group-text' />
                 </div>
                 <input
+                  {...register('descontoDiasAntes')}
                   type='number'
                   pattern='\d*'
                   name='desconto_limiteday_boleto'
