@@ -55,6 +55,20 @@ type requestBoleto = {
   multa_valor?: number;
   multa_datalimite?: number;
   multa_juros?: number;
+  cliente?: {
+    //  codigocliente: 0001 (string)
+    nomepessoa: string;
+    email: string;
+    cpf_cnpj: number;
+    logradouro: string;
+    numero: number;
+    complemento: string;
+    cep: number;
+    bairro: string;
+    cidade: string;
+    estado: string;
+    telefone: number;
+  };
 };
 type items = { descricao: string; valor: number; qtd: number };
 export default function CriarBoletos() {
@@ -98,22 +112,43 @@ export default function CriarBoletos() {
       valormulta,
       descontoValor,
       descontoDiasAntes,
+      CEP,
+      endereco,
+      nendereco,
+      complemento,
+      estado,
+      cidade,
+      bairro,
     } = data;
     console.log(data);
+
     let dadosBoleto: requestBoleto = {
       idclienteusuario: AddBoleto_Cliente.value,
       vencimento: vencimento,
       referenciapedido: referencia,
-
       items: items,
       aplicardesconto: aplicarDesconto,
-
       desconto_valorfixo: porcentagem === '2' ? descontoValor : undefined,
       desconto_porcento: porcentagem === '1' ? descontoValor : undefined,
       aplicarmulta: aplicarMulta,
       multa_valor: valormulta,
       multa_datalimite: limitedias,
       multa_juros: valormultajuros,
+      cliente: criarCliente
+        ? {
+            nomepessoa: nome,
+            email: email,
+            cpf_cnpj: cnpj,
+            logradouro: endereco,
+            numero: nendereco,
+            complemento: complemento,
+            cep: CEP,
+            bairro: bairro,
+            cidade: cidade,
+            estado: estado,
+            telefone: telefone,
+          }
+        : undefined,
     };
     console.log(dadosBoleto);
     const res = await api.post('/transacao/boleto', dadosBoleto);
